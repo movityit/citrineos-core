@@ -79,40 +79,50 @@ function mergeConfigFromEnvVars<T extends Record<string, any>>(
     if (!value) {
       continue;
     }
-    const lowercaseEnvKey = fullEnvKey.toLowerCase();
-    if (lowercaseEnvKey.startsWith(CITRINE_ENV_VAR_PREFIX)) {
-      const envKeyWithoutPrefix = lowercaseEnvKey.substring(
-        CITRINE_ENV_VAR_PREFIX.length,
-      );
-      const path = envKeyWithoutPrefix.split('_');
+    try {
+      const lowercaseEnvKey = fullEnvKey.toLowerCase();
+      if (lowercaseEnvKey.startsWith(CITRINE_ENV_VAR_PREFIX)) {
+        const envKeyWithoutPrefix = lowercaseEnvKey.substring(
+          CITRINE_ENV_VAR_PREFIX.length,
+        );
+        const path = envKeyWithoutPrefix.split('_');
 
-      let currentConfigPart: Record<string, any> = config;
-      let currentConfigKeyMap: Record<string, any> = configKeyMap;
+        let currentConfigPart: Record<string, any> = config;
+        let currentConfigKeyMap: Record<string, any> = configKeyMap;
 
-      for (let i = 0; i < path.length - 1; i++) {
-        const part = path[i];
-        const matchingKey = findCaseInsensitiveMatch(currentConfigKeyMap, part);
-        if (matchingKey && typeof currentConfigPart[matchingKey] === 'object') {
-          currentConfigPart = currentConfigPart[matchingKey];
-          currentConfigKeyMap = currentConfigKeyMap[matchingKey];
-        } else {
-          currentConfigPart[part] = {};
-          currentConfigPart = currentConfigPart[part];
-          currentConfigKeyMap = currentConfigKeyMap[part];
+        for (let i = 0; i < path.length - 1; i++) {
+          const part = path[i];
+          const matchingKey = findCaseInsensitiveMatch(currentConfigKeyMap, part);
+          if (matchingKey && typeof currentConfigPart[matchingKey] === 'object') {
+            currentConfigPart = currentConfigPart[matchingKey];
+            currentConfigKeyMap = currentConfigKeyMap[matchingKey];
+          } else {
+            currentConfigPart[part] = {};
+            currentConfigPart = currentConfigPart[part];
+            currentConfigKeyMap = currentConfigKeyMap[part];
+          }
+        }
+
+        const finalPart = path[path.length - 1];
+        const keyToUse =
+          currentConfigKeyMap[finalPart.toLowerCase()] || finalPart;
+
+        try {
+          currentConfigPart[keyToUse] = JSON.parse(value as string);
+        } catch {
+          console.debug(
+            `Mapping '${value}' as string for environment variable '${fullEnvKey}'`,
+          );
+          currentConfigPart[keyToUse] = value;
         }
       }
-
-      const finalPart = path[path.length - 1];
-      const keyToUse =
-        currentConfigKeyMap[finalPart.toLowerCase()] || finalPart;
-
-      try {
-        currentConfigPart[keyToUse] = JSON.parse(value as string);
-      } catch {
+    } catch (error) {
+      if (error instanceof Error) {
         console.debug(
-          `Mapping '${value}' as string for environment variable '${fullEnvKey}'`,
+          `Unable to map env var ${fullEnvKey}:${value} due to ${error.message}. Stack trace: ${error.stack}`
         );
-        currentConfigPart[keyToUse] = value;
+      } else {
+        console.debug(`Unable to map env var ${fullEnvKey}:${value} due to non-error: ${JSON.stringify(error)}`);
       }
     }
   }

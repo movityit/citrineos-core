@@ -9,7 +9,7 @@ export function createLocalConfig() {
   return defineConfig({
     env: 'development',
     centralSystem: {
-      host: '::',
+      host: '0.0.0.0',
       port: 8080,
     },
     modules: {

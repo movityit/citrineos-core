@@ -158,6 +158,7 @@ describe('StatusNotificationService', () => {
   describe('Test process OCPP 1.6 StatusNotification', () => {
     it('should save StatusNotification and connector when Charging Station exists', async () => {
       locationRepository.readChargingStationByStationId.mockResolvedValue(aChargingStation());
+      locationRepository.findOrCreateEvseByEvseTypeId.mockResolvedValue(aLocationEvse());
       jest.spyOn(StatusNotification, 'build').mockImplementation(() => {
         return aStatusNotification();
       });

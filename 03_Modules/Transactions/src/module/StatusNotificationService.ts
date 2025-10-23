@@ -156,10 +156,20 @@ export class StatusNotificationService {
         statusNotification,
       );
 
+      // For OCPP 1.6, create a virtual EVSE since the protocol doesn't have the EVSE concept
+      // Use evseTypeId = 0 to represent the default/virtual EVSE for OCPP 1.6 charging stations
+      const evse = await this._locationRepository.findOrCreateEvseByEvseTypeId(
+        tenantId,
+        stationId,
+        0,
+      );
+
       const connector = {
         tenantId,
         connectorId: statusNotificationRequest.connectorId,
         stationId,
+        evseId: evse.id,
+        evseTypeConnectorId: statusNotificationRequest.connectorId,
         status: OCPP1_6_Mapper.LocationMapper.mapStatusNotificationRequestStatusToConnectorStatus(
           statusNotificationRequest.status,
         ),

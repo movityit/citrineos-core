@@ -17,6 +17,7 @@ import {
 import {
   aChargingStation,
   aComponent,
+  aLocationEvse,
   anEvse,
   aVariable,
   MOCK_STATION_ID,
@@ -41,6 +42,7 @@ describe('StatusNotificationService', () => {
       addStatusNotificationToChargingStation: jest.fn(),
       readChargingStationByStationId: jest.fn(),
       createOrUpdateConnector: jest.fn(),
+      findOrCreateEvseByEvseTypeId: jest.fn(),
     } as unknown as jest.Mocked<ILocationRepository>;
 
     statusNotificationService = new StatusNotificationService(
@@ -52,6 +54,7 @@ describe('StatusNotificationService', () => {
 
   it('should save StatusNotification for Charging Station because Charging Station exists', async () => {
     locationRepository.readChargingStationByStationId.mockResolvedValue(aChargingStation());
+    locationRepository.findOrCreateEvseByEvseTypeId.mockResolvedValue(aLocationEvse());
     jest.spyOn(StatusNotification, 'build').mockImplementation(() => {
       return aStatusNotification();
     });
@@ -79,6 +82,7 @@ describe('StatusNotificationService', () => {
 
   it('should save Component and Variable ReportData because Station and Component and Variable exist', async () => {
     locationRepository.readChargingStationByStationId.mockResolvedValue(aChargingStation());
+    locationRepository.findOrCreateEvseByEvseTypeId.mockResolvedValue(aLocationEvse());
     jest.spyOn(StatusNotification, 'build').mockImplementation(() => {
       return aStatusNotification();
     });
@@ -154,6 +158,7 @@ describe('StatusNotificationService', () => {
   describe('Test process OCPP 1.6 StatusNotification', () => {
     it('should save StatusNotification and connector when Charging Station exists', async () => {
       locationRepository.readChargingStationByStationId.mockResolvedValue(aChargingStation());
+      locationRepository.findOrCreateEvseByEvseTypeId.mockResolvedValue(aLocationEvse());
       jest.spyOn(StatusNotification, 'build').mockImplementation(() => {
         return aStatusNotification();
       });

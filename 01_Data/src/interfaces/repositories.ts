@@ -26,6 +26,7 @@ import {
   CompositeSchedule,
   Connector,
   type EventData,
+  Evse,
   EvseType,
   InstalledCertificate,
   LocalListVersion,
@@ -225,6 +226,11 @@ export interface ILocationRepository extends CrudRepository<Location> {
     chargingStation: ChargingStation,
   ): Promise<ChargingStation>;
   createOrUpdateConnector(tenantId: number, connector: Connector): Promise<Connector | undefined>;
+  findOrCreateEvseByEvseTypeId(
+    tenantId: number,
+    stationId: string,
+    evseTypeId: number,
+  ): Promise<Evse>;
 }
 
 export interface ISecurityEventRepository extends CrudRepository<SecurityEvent> {

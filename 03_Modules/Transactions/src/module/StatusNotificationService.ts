@@ -62,10 +62,19 @@ export class StatusNotificationService {
         statusNotification,
       );
 
+      // Find or create the Evse record to get the database ID
+      const evse = await this._locationRepository.findOrCreateEvseByEvseTypeId(
+        tenantId,
+        stationId,
+        statusNotificationRequest.evseId,
+      );
+
       const connector = {
         tenantId,
         connectorId: statusNotificationRequest.connectorId,
         stationId,
+        evseId: evse.id,
+        evseTypeConnectorId: statusNotificationRequest.connectorId,
         status: OCPP2_0_1_Mapper.LocationMapper.mapConnectorStatus(
           statusNotificationRequest.connectorStatus,
         ),

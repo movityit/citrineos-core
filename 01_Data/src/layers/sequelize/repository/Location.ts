@@ -5,7 +5,14 @@
 import { CrudRepository, OCPPVersion, BootstrapConfig } from '@citrineos/base';
 import { Sequelize } from 'sequelize-typescript';
 import { ILogObj, Logger } from 'tslog';
-import { ChargingStation, Connector, Location, SequelizeRepository, StatusNotification } from '..';
+import {
+  ChargingStation,
+  Connector,
+  Evse,
+  Location,
+  SequelizeRepository,
+  StatusNotification,
+} from '..';
 import { type ILocationRepository } from '../../..';
 import { Op } from 'sequelize';
 import { LatestStatusNotification } from '../model/Location/LatestStatusNotification';
@@ -18,6 +25,7 @@ export class SequelizeLocationRepository
   statusNotification: CrudRepository<StatusNotification>;
   latestStatusNotification: CrudRepository<LatestStatusNotification>;
   connector: CrudRepository<Connector>;
+  evse: CrudRepository<Evse>;
 
   constructor(
     config: BootstrapConfig,
@@ -27,6 +35,7 @@ export class SequelizeLocationRepository
     statusNotification?: CrudRepository<StatusNotification>,
     latestStatusNotification?: CrudRepository<LatestStatusNotification>,
     connector?: CrudRepository<Connector>,
+    evse?: CrudRepository<Evse>,
   ) {
     super(config, Location.MODEL_NAME, logger, sequelizeInstance);
     this.chargingStation = chargingStation
@@ -56,6 +65,9 @@ export class SequelizeLocationRepository
     this.connector = connector
       ? connector
       : new SequelizeRepository<Connector>(config, Connector.MODEL_NAME, logger, sequelizeInstance);
+    this.evse = evse
+      ? evse
+      : new SequelizeRepository<Evse>(config, Evse.MODEL_NAME, logger, sequelizeInstance);
   }
 
   async readLocationById(tenantId: number, id: number): Promise<Location | undefined> {
@@ -303,5 +315,20 @@ export class SequelizeLocationRepository
       }
     });
     return result;
+  }
+
+  async findOrCreateEvseByEvseTypeId(
+    tenantId: number,
+    stationId: string,
+    evseTypeId: number,
+  ): Promise<Evse> {
+    const [evse] = await this.evse.readOrCreateByQuery(tenantId, {
+      where: {
+        tenantId,
+        stationId,
+        evseTypeId,
+      },
+    });
+    return evse;
   }
 }
